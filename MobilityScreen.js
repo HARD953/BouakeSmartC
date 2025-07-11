@@ -12,14 +12,17 @@ import {
   PermissionsAndroid,
   Alert,
   TextInput,
+  Dimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+const { width, height } = Dimensions.get('window');
+
 const MobilityScreen = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState('bus');
+  const [selectedTab, setSelectedTab] = useState('map'); // Par défaut sur la carte
   const [selectedBusLine, setSelectedBusLine] = useState(null);
   const [selectedStationSubTab, setSelectedStationSubTab] = useState('communale');
   const [modalVisible, setModalVisible] = useState(false);
@@ -449,7 +452,7 @@ const MobilityScreen = ({ navigation }) => {
     <View style={styles.tabContent}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Lignes de Bus</Text>
-        <TouchableOpacity style={styles.refreshBtn}>
+        <TouchableOpacity style={styles.refreshBtn} onPress={getCurrentLocation}>
           <Ionicons name="refresh-outline" size={20} color="#2E8B57" />
         </TouchableOpacity>
       </View>
@@ -722,13 +725,20 @@ const MobilityScreen = ({ navigation }) => {
     }
 
     return (
-      <View style={styles.mapContainer}>
+      <View style={styles.fullScreenMapContainer}>
         <MapView
-          style={styles.map}
+          style={styles.fullScreenMap}
           initialRegion={userLocation}
+          region={userLocation}
           showsUserLocation={true}
           showsMyLocationButton={true}
           provider={PROVIDER_GOOGLE}
+          zoomEnabled={true}
+          zoomControlEnabled={true}
+          scrollEnabled={true}
+          rotateEnabled={true}
+          pitchEnabled={true}
+          toolbarEnabled={true}
         >
           {busLines.map((line) =>
             line.stops.map((stop, index) => (
@@ -864,6 +874,13 @@ const MobilityScreen = ({ navigation }) => {
             <Text style={styles.legendText}>Zones de trafic</Text>
           </View>
         </View>
+
+        <TouchableOpacity 
+          style={styles.myLocationButton}
+          onPress={getCurrentLocation}
+        >
+          <Ionicons name="locate-outline" size={24} color="#2E8B57" />
+        </TouchableOpacity>
       </View>
     );
   };
@@ -918,9 +935,13 @@ const MobilityScreen = ({ navigation }) => {
         ))}
       </View>
 
-      <ScrollView style={styles.content}>
-        {renderTabContent()}
-      </ScrollView>
+      {selectedTab === 'map' ? (
+        renderMapContent()
+      ) : (
+        <ScrollView style={styles.content}>
+          {renderTabContent()}
+        </ScrollView>
+      )}
 
       <Modal
         animationType="slide"
@@ -1183,6 +1204,14 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     padding: 20,
+  },
+  fullScreenMapContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  fullScreenMap: {
+    ...StyleSheet.absoluteFillObject,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1831,6 +1860,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  myLocationButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 50,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 });
 
