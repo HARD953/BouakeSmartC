@@ -13,7 +13,8 @@ import {
   Platform,
   Animated,
   Dimensions,
-  Image
+  Image,
+  FlatList
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import LogementModule from './LogementModule';
@@ -29,12 +30,11 @@ import ProfileScreen from './ProfileScreen';
 import SecurityScreen from './SecurityScreen';
 import WasteScreen from './WasteScreen';
 import NumerosUtilesScreen from './NumerosUtilesScreen';
-
-
+import MapScreen from './servicesData';
 
 const { width, height } = Dimensions.get('window');
 
-// Composant Chatbot
+// Composant Chatbot amélioré
 const ChatbotScreen = ({ navigation, onClose }) => {
   const [messages, setMessages] = useState([
     {
@@ -46,7 +46,7 @@ const ChatbotScreen = ({ navigation, onClose }) => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const scrollViewRef = useRef();
+  const flatListRef = useRef();
 
   const quickResponses = [
     { id: 1, text: "Services disponibles", icon: "list-outline" },
@@ -116,7 +116,7 @@ const ChatbotScreen = ({ navigation, onClose }) => {
   };
 
   useEffect(() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    flatListRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
   return (
@@ -134,39 +134,43 @@ const ChatbotScreen = ({ navigation, onClose }) => {
         </View>
       </View>
 
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.chatMessages}
-        showsVerticalScrollIndicator={false}
-      >
-        {messages.map((message) => (
-          <View key={message.id} style={[
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={[
             styles.messageContainer,
-            message.sender === 'user' ? styles.userMessage : styles.botMessage
+            item.sender === 'user' ? styles.userMessage : styles.botMessage
           ]}>
             <Text style={[
               styles.messageText,
-              message.sender === 'user' ? styles.userMessageText : styles.botMessageText
+              item.sender === 'user' ? styles.userMessageText : styles.botMessageText
             ]}>
-              {message.text}
+              {item.text}
             </Text>
             <Text style={[
               styles.messageTime,
-              message.sender === 'user' ? styles.userMessageTime : styles.botMessageTime
+              item.sender === 'user' ? styles.userMessageTime : styles.botMessageTime
             ]}>
-              {message.time}
+              {item.time}
             </Text>
           </View>
-        ))}
-        
-        {isTyping && (
-          <View style={[styles.messageContainer, styles.botMessage]}>
-            <View style={styles.typingIndicator}>
-              <Text style={styles.typingText}>Assistant en train d'écrire...</Text>
-            </View>
-          </View>
         )}
-      </ScrollView>
+        ListFooterComponent={
+          isTyping ? (
+            <View style={[styles.messageContainer, styles.botMessage]}>
+              <View style={styles.typingIndicator}>
+                <Text style={styles.typingText}>Assistant en train d'écrire...</Text>
+              </View>
+            </View>
+          ) : null
+        }
+        style={styles.chatMessages}
+        contentContainerStyle={styles.chatMessagesContent}
+        showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+      />
 
       <View style={styles.quickResponsesContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -176,7 +180,7 @@ const ChatbotScreen = ({ navigation, onClose }) => {
               style={styles.quickResponseButton}
               onPress={() => handleQuickResponse(response)}
             >
-              <Ionicons name={response.icon} size={16} color="#4169E1" />
+              <Ionicons name={response.icon} size={16} color="#FF6B35" />
               <Text style={styles.quickResponseText}>{response.text}</Text>
             </TouchableOpacity>
           ))}
@@ -210,7 +214,7 @@ const ChatbotScreen = ({ navigation, onClose }) => {
   );
 };
 
-// Composant du bouton chatbot flottant
+// Composant du bouton chatbot flottant amélioré
 const ChatbotButton = ({ onPress }) => {
   const [showNotification, setShowNotification] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -245,11 +249,16 @@ const ChatbotButton = ({ onPress }) => {
   return (
     <View style={styles.chatbotButtonContainer}>
       {showNotification && (
-        <View style={styles.chatbotNotification}>
+        <Animated.View 
+          style={[
+            styles.chatbotNotification,
+            { opacity: pulseAnim.interpolate({ inputRange: [1, 1.2], outputRange: [0.9, 1] }) }
+          ]}
+        >
           <Text style={styles.chatbotNotificationText}>
             Besoin d'aide ? Chattez avec moi ! 💬
           </Text>
-        </View>
+        </Animated.View>
       )}
       <Animated.View style={[styles.chatbotButton, { transform: [{ scale: pulseAnim }] }]}>
         <TouchableOpacity onPress={onPress} style={styles.chatbotButtonInner}>
@@ -260,18 +269,18 @@ const ChatbotButton = ({ onPress }) => {
   );
 };
 
-// Écrans existants (inchangés de l'original)
+// Écrans principaux avec améliorations UI
 const ServicesScreen = ({ navigation }) => {
   const services = [
-    { name: 'Logement', icon: 'home-outline', color: '#FF8C00', screenName: 'logement' },
-    { name: 'Hôtels', icon: 'bed-outline', color: '#4169E1', screenName: 'hotels' },
-    { name: 'Réparateurs', icon: 'construct-outline', color: '#228B22', screenName: 'reparateurs' },
-    { name: 'Restaurants', icon: 'restaurant-outline', color: '#DC143C', screenName: 'restaurants' },
-    { name: 'Remorquage', icon: 'car-outline', color: '#FFD700', screenName: 'remorquages' },
-    { name: 'Mobile Money', icon: 'card-outline', color: '#9932CC', screenName: 'travauxartisans' },
-    { name: 'Travaux/Artisans', icon: 'hammer-outline', color: '#708090', screenName: 'travauxartisans' },
-    { name: 'Santé', icon: 'medkit-outline', color: '#FF1493', screenName: 'sante' },
-    { name: 'Pharmacie', icon: 'medical-outline', color: '#00BFFF', screenName: 'pharmacie' }
+    { name: 'Logement', icon: 'home-outline', color: '#FF6B35', screenName: 'logement' }, // Orange vif
+    { name: 'Hôtels', icon: 'bed-outline', color: '#007BFF', screenName: 'hotels' }, // Bleu électrique
+    { name: 'Réparateurs', icon: 'construct-outline', color: '#28A745', screenName: 'reparateurs' }, // Vert émeraude
+    { name: 'Restaurants', icon: 'restaurant-outline', color: '#E74C3C', screenName: 'restaurants' }, // Rouge vif
+    { name: 'Remorquage', icon: 'car-outline', color: '#F39C12', screenName: 'remorquages' }, // Orange doré
+    { name: 'Mobile Money', icon: 'card-outline', color: '#8E44AD', screenName: 'travauxartisans' }, // Violet améthyste
+    { name: 'Travaux/Artisans', icon: 'hammer-outline', color: '#17A2B8', screenName: 'travauxartisans' }, // Cyan
+    { name: 'Santé', icon: 'medkit-outline', color: '#DC3545', screenName: 'sante' }, // Rouge cerise
+    { name: 'Pharmacie', icon: 'medical-outline', color: '#20C997', screenName: 'pharmacie' } // Turquoise
   ];
 
   return (
@@ -282,76 +291,75 @@ const ServicesScreen = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.screenTitle}>Services</Text>
       </View>
-      <ScrollView
-        style={styles.screenContent}
-        contentContainerStyle={styles.scrollContents}
-        showsVerticalScrollIndicator={true}
-        alwaysBounceVertical={false}
-        bounces={true}
-      >
-        {services.map((service, index) => (
+      
+      <FlatList
+        data={services}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
           <TouchableOpacity
-            key={index}
             style={styles.serviceItem}
             onPress={() => {
-              if (service.screenName && service.screenName !== 'mobilemoney') {
-                navigation.navigate(service.screenName);
+              if (item.screenName && item.screenName !== 'mobilemoney') {
+                navigation.navigate(item.screenName);
               } else {
-                Alert.alert(`${service.name}`, 'Ce service sera bientôt disponible');
+                Alert.alert(`${item.name}`, 'Ce service sera bientôt disponible');
               }
             }}
             activeOpacity={0.8}
           >
             <View style={styles.serviceItemLeft}>
-              <View style={[styles.serviceItemIcon, { backgroundColor: service.color }]}>
-                <Ionicons name={service.icon} size={24} color="#FFF" />
+              <View style={[styles.serviceItemIcon, { backgroundColor: item.color }]}>
+                <Ionicons name={item.icon} size={24} color="#FFF" />
               </View>
-              <Text style={styles.serviceItemText}>{service.name}</Text>
+              <Text style={styles.serviceItemText}>{item.name}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#7F8C8D" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+        contentContainerStyle={styles.screenContent}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 };
 
-const MapScreen = ({ navigation }) => (
-  <SafeAreaView style={styles.screenContainer}>
-    <View style={[styles.screenHeader, { backgroundColor: '#228B22' }]}>
-      <TouchableOpacity onPress={navigation.goBack} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#FFF" />
-      </TouchableOpacity>
-      <Text style={styles.screenTitle}>Carte</Text>
-    </View>
-    <View style={styles.screenContent}>
-      <View style={styles.developmentCard}>
-        <Ionicons name="map-outline" size={48} color="#228B22" style={styles.developmentIcon} />
-        <Text style={styles.developmentText}>Carte interactive des services autour de vous</Text>
-        <Text style={styles.developmentSubtext}>En cours de développement...</Text>
-      </View>
-    </View>
-  </SafeAreaView>
-);
+// const MapScreen = ({ navigation }) => (
+//   <SafeAreaView style={styles.screenContainer}>
+//     <View style={[styles.screenHeader, { backgroundColor: '#28A745' }]}>
+//       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+//         <Ionicons name="arrow-back" size={24} color="#FFF" />
+//       </TouchableOpacity>
+//       <Text style={styles.screenTitle}>Carte</Text>
+//     </View>
+//     <View style={styles.screenContent}>
+//       <View style={styles.developmentCard}>
+//         <Ionicons name="map-outline" size={48} color="#28A745" style={styles.developmentIcon} />
+//         <Text style={styles.developmentText}>Carte interactive des services autour de vous</Text>
+//         <Text style={styles.developmentSubtext}>En cours de développement...</Text>
+//       </View>
+//     </View>
+//   </SafeAreaView>
+// );
 
-const AlertScreen = ({ navigation }) => (
-  <SafeAreaView style={styles.screenContainer}>
-    <View style={[styles.screenHeader, { backgroundColor: '#DC143C' }]}>
-      <TouchableOpacity onPress={navigation.goBack} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#FFF" />
-      </TouchableOpacity>
-      <Text style={styles.screenTitle}>Signalement</Text>
-    </View>
-    <View style={styles.screenContent}>
-      <View style={styles.developmentCard}>
-        <Text style={styles.developmentText}>Signaler un problème ou une urgence</Text>
-        <Text style={styles.developmentSubtext}>En cours de développement...</Text>
-      </View>
-    </View>
-  </SafeAreaView>
-);
+// const AlertScreen = ({ navigation }) => (
+//   <SafeAreaView style={styles.screenContainer}>
+//     <View style={[styles.screenHeader, { backgroundColor: '#E74C3C' }]}>
+//       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+//         <Ionicons name="arrow-back" size={24} color="#FFF" />
+//       </TouchableOpacity>
+//       <Text style={styles.screenTitle}>Signalement</Text>
+//     </View>
+//     <View style={styles.screenContent}>
+//       <View style={styles.developmentCard}>
+//         <Ionicons name="alert-circle-outline" size={48} color="#E74C3C" style={styles.developmentIcon} />
+//         <Text style={styles.developmentText}>Signaler un problème ou une urgence</Text>
+//         <Text style={styles.developmentSubtext}>En cours de développement...</Text>
+//       </View>
+//     </View>
+//   </SafeAreaView>
+// );
 
-// Composant principal
+// Composant principal amélioré
 export default function BouakeSmartCity() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -364,8 +372,8 @@ export default function BouakeSmartCity() {
       title: 'Services de la ville',
       subtitle: 'Administration',
       icon: 'business-outline',
-      color: '#4169E1',
-      bgColor: '#E8EFFF',
+      color: '#FF6B35', // Orange vibrant
+      bgColor: '#FFF4E6',
       action: 'services'
     },
     {
@@ -373,8 +381,8 @@ export default function BouakeSmartCity() {
       title: 'Documents',
       subtitle: 'Démarches Admin',
       icon: 'document-text-outline',
-      color: '#4682B4',
-      bgColor: '#E6F3FF',
+      color: '#007BFF', // Bleu électrique
+      bgColor: '#E3F2FD',
       action: 'documents'
     },
     {
@@ -382,8 +390,8 @@ export default function BouakeSmartCity() {
       title: 'Mobilité',
       subtitle: 'Transport & Parking',
       icon: 'bus-outline',
-      color: '#228B22',
-      bgColor: '#E8F8E8',
+      color: '#28A745', // Vert émeraude
+      bgColor: '#E8F5E8',
       action: 'mobility'
     },
     {
@@ -391,17 +399,17 @@ export default function BouakeSmartCity() {
       title: 'Signalement',
       subtitle: 'Alertes & Problèmes',
       icon: 'shield-checkmark-outline',
-      color: '#DC143C',
-      bgColor: '#FFE8E8',
+      color: '#E74C3C', // Rouge vif
+      bgColor: '#FFEBEE',
       action: 'alert'
     },
-        {
+    {
       id: 8,
       title: 'Mon compte',
       subtitle: 'Espace Personnel',
       icon: 'person-outline',
-      color: '#708090',
-      bgColor: '#F5F5F5',
+      color: '#8E44AD', // Violet améthyste
+      bgColor: '#F3E5F5',
       action: 'profile'
     },
     {
@@ -409,19 +417,20 @@ export default function BouakeSmartCity() {
       title: 'Déchets',
       subtitle: 'Collecte & Propreté',
       icon: 'trash-outline',
-      color: '#2E8B57',
-      bgColor: '#E8F5E8',
+      color: '#17A2B8', // Cyan
+      bgColor: '#E0F2F1',
       action: 'waste'
     },
   ];
+  
   const additionalServices = [
-      {
+    {
       id: 3,
       title: 'Réservations',
       subtitle: 'Hôtels & Services',
       icon: 'calendar-outline',
-      color: '#9932CC',
-      bgColor: '#F3E8FF',
+      color: '#DC3545', // Rouge cerise
+      bgColor: '#FFEBEE',
       action: 'reservations'
     },
     {
@@ -429,8 +438,8 @@ export default function BouakeSmartCity() {
       title: 'Tourisme & Culture',
       subtitle: 'Découvrir Bouaké',
       icon: 'camera-outline',
-      color: '#FF8C00',
-      bgColor: '#FFF4E6',
+      color: '#F39C12', // Orange doré
+      bgColor: '#FFF8E1',
       action: 'tourism'
     },
   ];
@@ -473,6 +482,10 @@ export default function BouakeSmartCity() {
   if (currentScreen !== 'home') {
     const screenComponents = {
       mobility: <MobilityScreen navigation={{ 
+        goBack: () => setCurrentScreen('home'),
+        navigate: (screen) => setCurrentScreen(screen)
+      }} />,
+      map: <MapScreen navigation={{ 
         goBack: () => setCurrentScreen('home'),
         navigate: (screen) => setCurrentScreen(screen)
       }} />,
@@ -533,12 +546,11 @@ export default function BouakeSmartCity() {
       <View style={styles.modernHeader}>
         <View style={styles.headerTop}>
           <View style={styles.logoSection}>
-            {/* Remplacement du logo texte par l'image du logo */}
-<Image 
-  source={require('./assets/bouake3.png')} 
-  style={styles.logoImage}
-  resizeMode="contain"
-/>
+            <Image 
+              source={require('./assets/bouake4.jpeg')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <View style={styles.logoTextContainer}>
               <Text style={styles.cityName}>Bouaké</Text>
               <Text style={styles.citySubtitle}>Ville intelligente</Text>
@@ -658,7 +670,7 @@ export default function BouakeSmartCity() {
             <Ionicons 
               name={item.icon} 
               size={20} 
-              color={currentScreen === item.screen ? '#4169E1' : '#7F8C8D'} 
+              color={currentScreen === item.screen ? '#FF6B35' : '#7F8C8D'} 
             />
             <Text style={[
               styles.bottomNavLabel,
@@ -700,11 +712,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  // Nouveau style pour l'image du logo
   logoImage: {
     width: 48,
     height: 48,
     marginRight: 12,
+    borderRadius: 8,
   },
   logoTextContainer: {
     flex: 1,
@@ -729,7 +741,7 @@ const styles = StyleSheet.create({
     right: 6,
     width: 8,
     height: 8,
-    backgroundColor: '#DC143C',
+    backgroundColor: '#E74C3C',
     borderRadius: 4,
   },
 
@@ -991,7 +1003,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-    scrollContents: {
+  scrollContents: {
     paddingVertical: 20,
     paddingBottom: 100,
   },
@@ -1085,6 +1097,8 @@ const styles = StyleSheet.create({
   },
   chatMessages: {
     flex: 1,
+  },
+  chatMessagesContent: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

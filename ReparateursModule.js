@@ -556,22 +556,29 @@ const styles = StyleSheet.create({
   },
 
   // Catégories
-  categoriesContainer: {
+categoriesContainer: {
+    flexGrow: 1,
     marginBottom: 16,
-  },
+    height: 50, // hauteur fixe pour éviter les sauts
+},
   categoriesContent: {
     paddingHorizontal: 16,
   },
-  categoryChip: {
+categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
     borderRadius: 20,
-    paddingHorizontal: 12,
+    //paddingHorizontal: 12,
     paddingVertical: 8,
-    marginRight: 8,
+    //marginRight: 8,
     elevation: 1,
-  },
+    minWidth: 50, // ou une autre valeur fixe
+    justifyContent: 'center', // pour centrer le contenu
+    paddingHorizontal: 16, // augmenter le padding pour plus de consistance
+    marginRight: 12, // marge constante
+    height: 32, // hauteur fixe
+},
   categoryChipActive: {
     backgroundColor: '#228B22',
   },

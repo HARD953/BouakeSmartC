@@ -22,7 +22,7 @@ import * as Location from 'expo-location';
 const { width, height } = Dimensions.get('window');
 
 const MobilityScreen = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState('map'); // Par défaut sur la carte
+  const [selectedTab, setSelectedTab] = useState('map');
   const [selectedBusLine, setSelectedBusLine] = useState(null);
   const [selectedStationSubTab, setSelectedStationSubTab] = useState('communale');
   const [modalVisible, setModalVisible] = useState(false);
@@ -46,10 +46,9 @@ const MobilityScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      requestLocationPermission();
+      //requestLocationPermission();
     } else {
       setLocationPermissionGranted(true);
-      getCurrentLocation();
     }
   }, []);
 
@@ -70,7 +69,6 @@ const MobilityScreen = ({ navigation }) => {
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           console.log('Permission de localisation accordée');
           setLocationPermissionGranted(true);
-          await getCurrentLocation();
         } else {
           console.log('Permission de localisation refusée');
         }

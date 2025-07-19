@@ -582,8 +582,9 @@ const styles = StyleSheet.create({
   
   // Categories
   categoriesContainer: {
-    paddingHorizontal: 16,
+    flexGrow: 1,
     marginBottom: 16,
+    height: 60, // hauteur fixe pour éviter les sauts
   },
   categoriesContent: {
     paddingRight: 16,
@@ -601,6 +602,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+    height: 40, // hauteur fixe
   },
   categoryItemActive: {
     backgroundColor: '#DC143C',

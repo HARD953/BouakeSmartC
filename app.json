@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "BouakeSmartCity",
-    "slug": "bouakesmartcity",
+    "slug": "bouakesmart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,14 +22,17 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.samajeste01.bouakesmartcity",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "dbab38b6-1352-4ec9-adf9-297bc839de7c"
+        "projectId": "986f42dc-3b4b-47e4-ad68-7548fd0b2717"
       }
     },
     "owner": "samajeste01"
